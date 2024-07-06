@@ -1,0 +1,5 @@
+pre-commit
+ruff
+mypy
+coverage
+poethepoet

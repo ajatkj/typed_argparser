@@ -1,0 +1,92 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "typed_argparser"
+authors = [{ name = "Ankit Jain", email = "ajatkj.dev@gmail.com" }]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+description = "Simplify command line argument parsing with type hints"
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["typed", "argparse", "argparser", "argparse-typed"]
+license = { text = "MIT" }
+dynamic = ["version"]
+
+[project.urls]
+Repository = "https://github.com/ajatkj/typed_argparser"
+
+[tool.setuptools.packages.find]
+exclude = ["typed_argparser.tests*", "typed_argparser.examples*"]
+
+[tool.setuptools_scm]
+
+[tool.mypy]
+modules = "typed_argparser"
+exclude = "tests"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "_strptime"
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 122
+target-version = "py38"
+
+[tool.poe.tasks]
+_format = "ruff format -q ."
+_format_check = "ruff format --check -q ."
+_lint = "ruff check ."
+_mypy = "mypy  --install-types --non-interactive typed_argparser"
+
+[tool.poe.tasks.lint]
+sequence = ["_lint", "_format", "_mypy"]
+help = "Lint code and report any issues."
+
+[tool.poe.tasks.check]
+sequence = ["_lint", "_format_check", "_mypy"]
+help = "Check linting, formatting and static analysis and report any issues."
+
+[tool.poe.tasks.clean]
+shell = """
+rm -rf `find . -name __pycache__`
+"""
+help = "Clear all cache."
+
+[tool.poe.tasks.test]
+cmd = "python3 -m unittest -v tests/tests.py"
+help = "Run tests"
+
+[tool.poe.tasks._coverage]
+shell = "coverage run -m unittest tests/tests.py"
+env.COVERAGE_FILE.default = ".coverage_default/coverage_local"
+env.CONTEXT.default = "default_context"
+
+[tool.poe.tasks._coverage_pre]
+shell = "mkdir -p $(dirname $COVERAGE_FILE)"
+env.COVERAGE_FILE.default = ".coverage_default/coverage_local"
+
+[tool.poe.tasks.coverage]
+sequence = ["_coverage_pre", "_coverage"]
+help = "Run coverage"
+
+[tool.poe.tasks.coverage_report]
+shell = "coverage report && coverage html --show-contexts --title 'typed_argparser coverage'"
+help = ""
+env.COVERAGE_FILE.default = ".coverage_default/coverage_local"
+env.CONTEXT.default = "default_context"
+
+
+[tool.coverage.run]
+omit = ["tests/*", "typed_argparser/formatter.py"]
+context = '${CONTEXT}'
