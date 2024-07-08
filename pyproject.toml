@@ -21,7 +21,7 @@ requires-python = ">=3.8"
 keywords = ["typed", "argparse", "argparser", "argparse-typed"]
 license = { text = "MIT" }
 dynamic = ["version"]
-dependencies = ["typing_extensions>=4.7.0,<5.0.0"]
+dependencies = ["typing-extensions>=4.7.0,<5.0.0"]
 
 
 [project.urls]
