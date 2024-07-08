@@ -8,12 +8,12 @@
   <a href="https://app.codecov.io/gh/ajatkj/typed_argparser/tree/main/" target="_blank">
       <img src="https://img.shields.io/codecov/c/github/ajatkj/typed_argparser?color=%2334D058&style=flat-square" alt="Coverage">
   </a>
-  <!-- <a href="https://pypi.org/project/typed-argparser" target="_blank">
+  <a href="https://pypi.org/project/typed-argparser" target="_blank">
       <img src="https://img.shields.io/pypi/v/typed-argparser?color=%2334D058&label=pypi%20package&style=flat-square" alt="Package version">
   </a>
   <a href="https://pypi.org/project/typed-argparser" target="_blank">
       <img src="https://img.shields.io/pypi/pyversions/typed-argparser?color=%2334D058&style=flat-square" alt="Supported Python versions">
-  </a> -->
+  </a>
 </p>
 
 # typed-argparser
@@ -25,12 +25,13 @@ It uses Python's type hints to provide a convenient way of parsing and validatin
 
 ✓ **Type Hinting:** Uses type hints to parse and validate command-line arguments.<br />
 ✓ **Modular Interface:** Easily define arguments and commands in a clear, organized way.<br />
-✓ **Automatic Help Pages:** Generates help pages automatically, so users know how to use your CLI.<br />
+✓ **Reusable Arguments:** Easily reuse arguments across multiple commands.<br />
 ✓ **Nested Commands:** Supports complex applications with any level of nested commands.<br />
 ✓ **File Handling:** Provides out-of-the-box support for handling files.<br />
 ✓ **Customizable Help Messages:** Fully customizable, giving you control over usage and help messages.<br />
 ✓ **Built-in Validators:** Comes with many built-in validators, such as time range and length validators.<br />
 ✓ **Custom Types:** You can define your own custom types to validate and convert command-line arguments.<br />
+✓ **Multiple Commands:** Supports multiple commands in a single CLI (experimental).<br />
 
 ## Installation
 
