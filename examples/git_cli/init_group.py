@@ -3,8 +3,7 @@ from typing import Optional
 
 from typing_extensions import Annotated, Doc
 
-from typed_argparser import ArgumentClass
-from typed_argparser.fields import argfield
+from typed_argparser import ArgumentClass, argfield
 from typed_argparser.groups import ArgumentGroup
 
 from .common import Directory

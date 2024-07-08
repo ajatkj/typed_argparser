@@ -6,12 +6,12 @@ from typing import Dict, Optional, Union
 cwd = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(f"{cwd}/../../")
 
-from typed_argparser import SUPPRESS, ArgumentClass  # noqa: E402
+from typed_argparser import ArgumentClass, argfield  # noqa: E402
+from typed_argparser.constants import SUPPRESS  # noqa: E402
 from typed_argparser.config import ArgumentConfig  # noqa: E402
 from examples.git_cli.add_group import AddGroup  # noqa: E402
 from examples.git_cli.init_group import InitGroup  # noqa: E402
 from examples.git_cli.remote_group import RemoteCommand  # noqa: E402
-from typed_argparser.fields import argfield  # noqa: E402
 
 
 class Git(ArgumentClass, AddGroup, InitGroup):
@@ -58,25 +58,17 @@ git_cli.parse()
 
 
 @git_cli.execute
-def show_help():
+def show_help() -> None:
     git_cli.print_help()
 
 
 @git_cli.remote.execute
-def show_remote():
+def show_remote() -> None:
     git_cli.remote.print_help()
 
 
 @git_cli.remote.add.execute
-def add_remote(name, url, *, branch: Optional[str] = None):
+def add_remote(name: str, url: str, *, branch: Optional[str] = None) -> None:
     print(f"Adding remote {name} at {url}")
     print("Info:")
     print(f"\tBranch {branch}")
-    # print(f"\tMaster {master}")
-    # print(f"\tTags {tags}")
-    # print(f"\tMirror {mirror}")
-
-
-# @git_cli.execute()
-# def show_default():
-#     print("this is default")

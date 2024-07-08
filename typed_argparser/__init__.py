@@ -1,11 +1,13 @@
 from .config import ArgumentConfig
-from .constants import SUPPRESS
 from .parser import ArgumentClass
 from .validators import ArgumentValidator
+from .fields import argfield
 
 __all__ = [
     "ArgumentClass",
     "ArgumentConfig",
-    "SUPPRESS",
     "ArgumentValidator",
+    "argfield",
 ]
+
+__version__ = "1.0.0"

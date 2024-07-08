@@ -1,17 +1,16 @@
-from io import TextIOWrapper
 import os
 import sys
-from typing import Dict, List, Optional, Union
-from typing_extensions import Annotated
+from io import TextIOWrapper
 from pathlib import Path
+from typing import Dict, List, Optional, Union
 
+from typing_extensions import Annotated
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(f"{cwd}/../")
 
+from typed_argparser import ArgumentClass, argfield  # noqa: E402
 from typed_argparser.types import Args  # noqa: E402
-from typed_argparser import ArgumentClass  # noqa: E402
-from typed_argparser.fields import argfield  # noqa: E402
 
 
 class Example2(ArgumentClass):
@@ -32,18 +31,18 @@ cli.parse("--opt3 output.txt 20 abc")
 
 
 @cli.execute("opt1", "opt2")
-def execute_1(opt1: str, opt2: List[str]):
+def execute_1(opt1: str, opt2: List[str]) -> None:
     print("This function is executed when both function arguments are provided.")
     print(f"opt1: {opt1}, opt2: {opt2}")
 
 
 @cli.execute("opt3")
-def execute_2(opt3: TextIOWrapper):
+def execute_2(opt3: TextIOWrapper) -> None:
     opt3.write("This is written to the output file.")
 
 
 @cli.execute("opt4")
-def execute_3(opt4: Dict[str, int]):
+def execute_3(opt4: Dict[str, int]) -> None:
     print("This will not be executed as opt4 is not provided.")
 
 

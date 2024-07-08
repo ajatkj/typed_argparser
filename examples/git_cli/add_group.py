@@ -1,12 +1,11 @@
-from typing import List, Optional
 from pathlib import Path
+from typing import List, Optional
 
 from typing_extensions import Annotated, Doc
 
-from typed_argparser import SUPPRESS, ArgumentClass
-from typed_argparser.fields import argfield
+from typed_argparser import ArgumentClass, argfield
+from typed_argparser.constants import SUPPRESS
 from typed_argparser.groups import ArgumentGroup
-
 
 from .common import CommonParameters
 

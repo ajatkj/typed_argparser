@@ -1,7 +1,7 @@
 from typing import Literal, Optional
 
+from typed_argparser import argfield
 from typed_argparser.constants import SUPPRESS
-from typed_argparser.fields import argfield
 from typed_argparser.groups import ArgumentGroup
 from typed_argparser.parser import ArgumentClass
 from typed_argparser.validators import UrlValidator

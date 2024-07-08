@@ -118,8 +118,7 @@ import os
 import sys
 from typing import Dict, List, Optional, Tuple, Union
 
-from typed_argparser import ArgumentClass
-from typed_argparser.fields import argfield
+from typed_argparser import ArgumentClass, argfield
 
 
 class Example1(ArgumentClass):

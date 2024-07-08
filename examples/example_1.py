@@ -5,8 +5,7 @@ from typing import Dict, List, Optional, Tuple, Union
 cwd = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(f"{cwd}/../")
 
-from typed_argparser import ArgumentClass  # noqa: E402
-from typed_argparser.fields import argfield  # noqa: E402
+from typed_argparser import ArgumentClass, argfield  # noqa: E402
 
 
 class Example1(ArgumentClass):
