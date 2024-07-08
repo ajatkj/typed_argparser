@@ -7,7 +7,8 @@ from .constants import SUBPARSER_TITLE, GroupTypeEnum
 from .formatter import ArgumentFormatter
 
 if TYPE_CHECKING:  # pragma: no cover
-    from argparse import _ArgumentGroup as DefaultArgumentGroup, Namespace
+    from argparse import Namespace
+    from argparse import _ArgumentGroup as DefaultArgumentGroup
 
     from .config import ArgumentConfig
     from .constants import ArgumentGroupRegistryType

@@ -3,3 +3,4 @@ ruff
 mypy
 coverage
 poethepoet
+typing_extensions

@@ -1,7 +1,6 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ajatkj/typed_argparser/main/assets/logo.png" alt="Description of the image">
+  <img src="https://raw.githubusercontent.com/ajatkj/typed_argparser/main/assets/logo.png" width="200"  alt="Description of the image">
 </p>
-<!--
 <p align="center">
   <a href="https://github.com/ajatkj/typed_argparser/actions?query=workflow%3ATest+event%3Apush+branch%3Amain" target="_blank">
       <img src="https://img.shields.io/github/actions/workflow/status/ajatkj/typed_argparser/tests.yml?branch=main&event=push&style=flat-square&label=test&color=%2334D058" alt="Test">
@@ -9,13 +8,13 @@
   <a href="https://app.codecov.io/gh/ajatkj/typed_argparser/tree/main/" target="_blank">
       <img src="https://img.shields.io/codecov/c/github/ajatkj/typed_argparser?color=%2334D058&style=flat-square" alt="Coverage">
   </a>
-  <a href="https://pypi.org/project/typed-argparser" target="_blank">
+  <!-- <a href="https://pypi.org/project/typed-argparser" target="_blank">
       <img src="https://img.shields.io/pypi/v/typed-argparser?color=%2334D058&label=pypi%20package&style=flat-square" alt="Package version">
   </a>
   <a href="https://pypi.org/project/typed-argparser" target="_blank">
       <img src="https://img.shields.io/pypi/pyversions/typed-argparser?color=%2334D058&style=flat-square" alt="Supported Python versions">
-  </a>
-</p> -->
+  </a> -->
+</p>
 
 # typed-argparser
 
@@ -80,11 +79,11 @@ The possibilities are endless but remember some rules:
 1. Dict allows users to use the option multiple times.
 1. Dict and List[Dict] behaves similar to each other except that the later supports nargs.
 
-### Arguments to Argument Types
+### Arguments to Argument Types (or Runtime Arguments)
 
 Some argument types allow you to pass arguments to them to customize their behavior. <br />
 For example, you can pass `mode` to `Path` type to specify the mode in which the file should be opened. <br />
-These values are passed using python's `Annotated` type. A special `Args` class is used to represent the arguments to the type.
+These values are passed using python's `Annotated` type. A special `Args` class is used to pass the arguments to the type.
 For example, to pass `mode` to `Path` type, you can use `path: Annotated[Path, Args(mode="r")] = argfield(...)`.
 
 Following tables lists all available arguments to the types.
@@ -105,8 +104,8 @@ Following tables lists all available arguments to the types.
 
 \* All arguments to pathlib.Path are supported.
 
-Additionally, args from `Annotated` metadata are also automatically supplied to the validators. <br />
-For example, the format argument for datetime type is also suuplied to the `DateTimeRangeValidator` validator so that the validator uses the correct format.
+Additionally, args from `Annotated` metadata are also automatically supplied to the validators as runtime arguments. <br />
+For example, the format argument for datetime type is also supplied to the `DateTimeRangeValidator` validator so that the validator uses the correct format.
 
 ## Usage
 
@@ -186,11 +185,11 @@ To use `ArgumentClass`, you need to define a subclass of it and define the argum
 
 All class variables are optional and can be used to customize the CLI program.
 
-- \_\_program\_\_: The name of the CLI program.
-- \_\_description\_\_:The description of the CLI program.
-- \_\_epilog\_\_: The epilog of the CLI program.
-- \_\_usage\_\_: The usage message of the CLI program. Overrides the default usage message.
-- \_\_version\_\_: The version of the CLI program.
+- **\_\_program\_\_**: The name of the CLI program.
+- **\_\_description\_\_**:The description of the CLI program.
+- **\_\_epilog\_\_**: The epilog of the CLI program.
+- **\_\_usage\_\_**: The usage message of the CLI program.
+- **\_\_version\_\_**: The version of the CLI program.
 
 ```py3
 class CLI(ArgumentClass):
@@ -270,7 +269,7 @@ Returns an `ArgumentField` object, which represents an argument in the command l
 `ArgumentGroup` is a class that represents a group of arguments in the command line interface. It is used to organize arguments into logical sections. <br />
 To define a group, you need to create a subclass of `ArgumentGroup` and define the arguments using the `argfield` function.
 
-#### Parameters
+#### Class Variables
 
 - **\_\_title\_\_** (str): The title of the group.
 - **\_\_group_description\_\_** (str | None): An optional description of the group.
@@ -283,66 +282,67 @@ To define a group, you need to create a subclass of `ArgumentGroup` and define t
 Validators provide easy way to validate your arguments as soon as they are parsed. `typed_argparser` provides certain
 built-in validators but you can as easily implement your own validators (check [Custom Validators](#Custom-Validators)).
 
-#### LengthValidator
+1. #### LengthValidator
 
-Validates the length of any sized argument.<br />
-Parameters:
+   Validates if the argument is of the specified length.<br />
+   Parameters:
 
-- **min** (int | None): Minimum length of the argument.
-- **max** (int | None): Maximum length of the argument.
+   - **min** (int | None): Minimum length of the argument.
+   - **max** (int | None): Maximum length of the argument.
 
-#### RangeValidator
+1. #### RangeValidator
 
-Validates the range of a numeric argument.<br />
-Parameters:
+   Validates if a numeric argument is within the specified range.<br />
+   Parameters:
 
-- **min** (int | float | None): Minimum value of the argument.
-- **max** (int | float | None): Maximum value of the argument.
+   - **min** (int | float | None): Minimum value of the argument.
+   - **max** (int | float | None): Maximum value of the argument.
 
-#### DateTimeRangeValidator
+1. #### DateTimeRangeValidator
 
-Validates the range of a date and time argument.<br />
-Parameters:
+   Validates if the argument is within the specified date, time or datetime range.<br />
+   Parameters:
 
-- **min** (str | None): Minimum value of datetime argument.
-- **max** (str | None): Maximum value of datetime argument.
-- **format** (str | None): Datetime format. Defaults to "%Y-%m-%d" for date, "%H:%M:%S" for time and "%Y-%m-%dT%H:%M:%S" for datetime.
+   - **min** (str | None): Minimum value of datetime argument.
+   - **max** (str | None): Maximum value of datetime argument.
+   - **format** (str | None): Datetime format. Defaults to "%Y-%m-%d" for date, "%H:%M:%S" for time and "%Y-%m-%dT%H:%M:%S" for datetime.
 
-#### PathValidator
+1. #### PathValidator
 
-Validates the path argument.<br />
-Parameters:
+   Validates if the argument is a valid path.<br />
+   Parameters:
 
-- **is_absolute** (bool | None): Whether the path is absolute or not.
-- **is_dir** (bool | None): Whether the path is a directory or not.
-- **is_file** (bool | None): Whether the path is a file or not.
-- **exists** (bool | None): Whether the path exists or not.
+   - **is_absolute** (bool | None): Whether the path is absolute or not.
+   - **is_dir** (bool | None): Whether the path is a directory or not.
+   - **is_file** (bool | None): Whether the path is a file or not.
+   - **exists** (bool | None): Whether the path exists or not.
 
-#### UrlValidator
+1. #### UrlValidator
 
-Validates the url argument.<br />
-Parameters:
+   Validates if the argument is a valid url.<br />
+   Parameters:
 
-- **allowed_schemes** (List[str] | None): List of allowed schemes for the url.
-- **host_required** (bool | None): Whether the host is required or not.
-- **port_required** (bool | None): Whether the port is required or not.
+   - **allowed_schemes** (List[str] | None): List of allowed schemes for the url.
+   - **host_required** (bool | None): Whether the host is required or not.
+   - **port_required** (bool | None): Whether the port is required or not.
 
-#### RegexValidator
+1. #### RegexValidator
 
-Validates the regex argument.<br />
-Parameters:
+   Validates the argument against a regex pattern.<br />
+   Parameters:
 
-- **pattern** (str | None): Regex pattern to validate the argument.
+   - **pattern** (str | None): Regex pattern to validate the argument.
 
-#### ConfirmationValidator
+1. #### ConfirmationValidator
 
-This is a special validator that asks for confirmation before proceeding with the execution of the program.<br />
-Parameters:
+   This is a special validator that asks for confirmation before proceeding with the execution of the program.<br />
+   If the answer does not match any of the answers provided, the program will exit with an error.<br />
+   Parameters:
 
-- **message** (str | None): Message to display before asking for confirmation.
-- **abort_message** (str | None): Message to display when confirmation is aborted.
-- **answers** (List[str] | None): List of answers to accepted for confirmation.
-- **ignore_case** (bool | None): Whether to ignore case when comparing answers. Defaults to True.
+   - **message** (str | None): Message to display before asking for confirmation.
+   - **abort_message** (str | None): Message to display when confirmation is aborted.
+   - **answers** (List[str] | None): List of answers to accepted for confirmation.
+   - **ignore_case** (bool | None): Whether to ignore case when comparing answers. Defaults to True.
 
 ## Commands
 
@@ -364,9 +364,7 @@ class Git(ArgumentClass):
 
 ### Custom Types
 
-You can define your own custom types to validate and convert command-line arguments to specific types.
-
-More details coming soon.
+To be updated soon.
 
 ```py3
 
@@ -374,23 +372,29 @@ More details coming soon.
 
 ### Custom Validators
 
-To define a custom validator, you need to create a subclass of `ArgumentValidator` and define the validation logic using the `validator` method.
+To define a custom validator, you need to create a subclass of `ArgumentValidator` and define 2 methods: `__init__` and `validator`. <br />
+`__init__` accepts the validator arguments as keyword arguments and is used to initialize the validator. <br />
+`validator` accepts the value to be validated as a parameter and is used to validate the value. Any runtime arguments are passed to the validator as keyword arguments.
+
+Simple example of a custom validator that validates if a numnber is within a range:
 
 ```py3
 class MyValidator(ArgumentValidator):
-    def validator(self, value: str, min: Optional[int] = None, max: Optional[int] = None) -> None:
-        if min and max and (len(value) < min or len(value) > max):
-            raise ValidationError(f"string length should be between {min} and {max}", validator=self)
-        if min and len(value) < min:
-            raise ValidationError(f"string length should be greater than {min}", validator=self)
-        if max and len(value) > max:
-            raise ValidationError(f"string length should be less than {max}", validator=self)
-
     def __init__(self, min: Optional[int] = None, max: Optional[int] = None) -> None:
         if (min and max and min >= max) or (min is None and max is None):
             raise ValidatorInitError("invalid range provided", validator=self)
+        self.min = min
+        self.max = max
 
-        super().__init__(self.validator, min=min, max=max)
+    def validator(self, value: str) -> None:
+        if self.min and self.max and (len(value) < self.min or len(value) > self.max):
+            raise ValidationError(f"string length should be between {self.min} and {self.max}", validator=self)
+        if self.min and len(value) < self.min:
+            raise ValidationError(f"string length should be greater than {self.min}", validator=self)
+        if self.max and len(value) > self.max:
+            raise ValidationError(f"string length should be less than {self.max}", validator=self)
+
+```
 
 # License
 
@@ -399,4 +403,3 @@ class MyValidator(ArgumentValidator):
 # Contribution
 
 If you are interested in contributing to typed_argparser, please take a look at the [contributing guidelines](./CONTRIBUTING.md).
-```

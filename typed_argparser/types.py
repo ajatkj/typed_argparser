@@ -1,17 +1,17 @@
+from _strptime import TimeRE
 from datetime import date as default_date
 from datetime import datetime as default_datetime
 from datetime import time as default_time
 from enum import Enum
 from os import fsencode
 from pathlib import Path as DefaultPath
-from sys import stdin, stdout
+from sys import stdin, stdout, version_info
 from typing import (  # type: ignore
     Any,
     Dict,
     List,
     Optional,
     Tuple,
-    Type,
     Union,
     _GenericAlias,
     _SpecialForm,
@@ -20,7 +20,6 @@ from typing import (  # type: ignore
 from urllib.parse import urlparse
 from warnings import warn
 
-from _strptime import TimeRE
 from typing_extensions import Annotated, TypeVar, get_args, get_origin
 
 import typed_argparser.parser as parser
@@ -141,7 +140,7 @@ def get_types(annotation: Any, parent_origin: Optional[Any] = None) -> utils.Ann
     if arg is Any:
         arg = str
 
-    if arg is Type:
+    if arg is TYPE_TYPE or get_origin(arg) is type:
         arg = type
 
     if arg is default_date:
@@ -175,7 +174,7 @@ def get_types(annotation: Any, parent_origin: Optional[Any] = None) -> utils.Ann
         warn(f"'Args' have no meaning for subcommand {arg.__class__.__name__}", category=Warning, stacklevel=10)
 
     if isinstance(arg, (_GenericAlias, _SpecialForm)):
-        raise ArgumentError(f"type '{arg}' not supported", parent_origin)
+        raise ArgumentError(f"type '{arg}' not supported")
 
     return {"origin": parent_origin, "args": arg, "value": value, "optional": is_optional}
 
@@ -262,10 +261,12 @@ class _PathType(ArgumentType, DefaultPath):
         **__: Any,
     ) -> None:
         # Make sure to send all other arguments other than the input value
+        if version_info >= (3, 12):
+            super(DefaultPath, self).__init__(*args)
         super().__init__(mode=mode, buffering=buffering, encoding=encoding, errors=errors, newline=newline)
         self.mode = mode
         self.buffering = buffering
-        self.enconding = encoding
+        self.encoding = encoding
         self.errors = errors
         self.newline = newline
 
@@ -286,7 +287,7 @@ class _PathType(ArgumentType, DefaultPath):
         return super().open(
             mode or self.mode,
             buffering or self.buffering,
-            encoding or self.enconding,
+            encoding or self.encoding,
             errors or self.errors,
             newline or self.newline,
         )
@@ -475,7 +476,7 @@ class _TupleType:
 
     def __init__(self, types: List[Any] = []):
         for typ in types:
-            if get_origin(typ) is not None and get_origin(typ) != type:
+            if get_origin(typ) is not None and get_origin(typ) is not type:
                 raise ArgumentError(f"tuple types must be simple builtin types - '{getattr(typ, '__name__', repr(typ))}'")
         self.types = types
 
@@ -492,14 +493,14 @@ class _TupleType:
         result = []
         if not self.has_ellipsis():
             for val, typ in zip(value, self.types):
-                if typ is TYPE_TYPE:
+                if typ is TYPE_TYPE or get_origin(typ) is type:
                     result.append(val)
                 else:
                     result.append(typ(val))
         else:
             typ = self.types[0]
             for val in value:
-                if typ is TYPE_TYPE:
+                if typ is TYPE_TYPE or get_origin(typ) is type:
                     result.append(val)
                 else:
                     result.append(typ(val))
@@ -548,7 +549,7 @@ class _UnionType:
 
     def __call__(self, value: str) -> Any:
         for arg in self.types:
-            if arg == bool:
+            if arg is bool:
                 if value == "True" or value == "":
                     return True
                 if value == "False" or value is None:

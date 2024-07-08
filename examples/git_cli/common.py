@@ -12,12 +12,12 @@ class CommonParameters:
         Doc(
             """\
             Files to add content from. Fileglobs (e.g.  *.c) can be given to add all matching
-            files. Also a leading directory name (e.g.  dir to add dir/file1 and dir/file2) 
-            can be given to update the index to match the current state of the directory as a 
+            files. Also a leading directory name (e.g.  dir to add dir/file1 and dir/file2)
+            can be given to update the index to match the current state of the directory as a
             whole (e.g. specifying dir will record not just a file dir/file1 modified in the
             working tree, a file dir/file2 added to the working tree, but also a file dir/file3
-            removed from the working tree). Note that older versions of Git used to ignore 
-            removed files; use --no-all option if you want to add modified or new files but 
+            removed from the working tree). Note that older versions of Git used to ignore
+            removed files; use --no-all option if you want to add modified or new files but
             ignore removed ones.
 
             For more details about the <pathspec> syntax, see the pathspec entry in gitglossary(7)."""

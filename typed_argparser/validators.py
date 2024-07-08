@@ -1,10 +1,9 @@
 from datetime import date, datetime, time
 from _strptime import TimeRE
-from functools import partial
 from os import fsencode
 from pathlib import Path
 import re
-from typing import Any, Callable, Generic, List, Optional, Sized, TypeVar, Union
+from typing import Any, Generic, List, Optional, Sized, TypeVar, Union
 from urllib.parse import urlparse
 
 from typed_argparser.types import _DateTimeType, _DateType
@@ -16,76 +15,67 @@ F = TypeVar("F")
 
 
 class ArgumentValidator(Generic[F]):
-    def __init__(self, func: Callable[..., None], *args: Any, **kwargs: Any) -> None:
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        self.__runtime_args__ = []
-        for k in list(self.kwargs.keys()):
-            if self.kwargs[k] == "?":
-                self.__runtime_args__.append(k)
-                self.kwargs.pop(k)
-
     def __call__(self, value: F, **kwargs: Any) -> Any:
         # value is supplied by argument parser
         # kwargs is supplied by ArgumentClass parser as runtime arguments
-        return partial(self.func, *self.args, **self.kwargs)(value, **kwargs)
+        if hasattr(self, "validator"):
+            return self.validator(value, **kwargs)
 
 
 class LengthValidator(ArgumentValidator[Sized]):
-    def validator(self, value: str, min: Optional[int] = None, max: Optional[int] = None) -> None:
-        if min and max and (len(value) < min or len(value) > max):
-            raise ValidationError(f"string length should be between {min} and {max}", validator=self)
-        if min and len(value) < min:
-            raise ValidationError(f"string length should be greater than {min}", validator=self)
-        if max and len(value) > max:
-            raise ValidationError(f"string length should be less than {max}", validator=self)
+    def validator(self, value: str) -> None:
+        if self.min and self.max and (len(value) < self.min or len(value) > self.max):
+            raise ValidationError(f"string length should be between {self.min} and {self.max}", validator=self)
+        if self.min and len(value) < self.min:
+            raise ValidationError(f"string length should be greater than {self.min}", validator=self)
+        if self.max and len(value) > self.max:
+            raise ValidationError(f"string length should be less than {self.max}", validator=self)
 
     def __init__(self, min: Optional[int] = None, max: Optional[int] = None) -> None:
         if (min and max and min >= max) or (min is None and max is None):
             raise ValidatorInitError("invalid range provided", validator=self)
-
-        super().__init__(self.validator, min=min, max=max)
+        self.min = min
+        self.max = max
 
 
 class RangeValidator(ArgumentValidator[Union[int, float]]):
-    def validator(
-        self, value: Union[int, float], min: Optional[Union[int, float]] = None, max: Optional[Union[int, float]] = None
-    ) -> None:
-        if min and max and (value < min or value > max):
-            raise ValidationError(f"value should be between {min} and {max}", validator=self)
-        if min and value < min:
-            raise ValidationError(f"value should be greater than {min}", validator=self)
-        if max and value > max:
-            raise ValidationError(f"value should be less than {max}", validator=self)
+    def validator(self, value: Union[int, float]) -> None:
+        if self.min and self.max and (value < self.min or value > self.max):
+            raise ValidationError(f"value should be between {self.min} and {self.max}", validator=self)
+        if self.min and value < self.min:
+            raise ValidationError(f"value should be greater than {self.min}", validator=self)
+        if self.max and value > self.max:
+            raise ValidationError(f"value should be less than {self.max}", validator=self)
 
     def __init__(self, min: Optional[Union[int, float]] = None, max: Optional[Union[int, float]] = None):
         if (min and max and min >= max) or (min is None and max is None):
             raise ValidatorInitError("invalid range provided", validator=self)
 
-        super().__init__(self.validator, min=min, max=max)
+        self.min = min
+        self.max = max
+
+        # super().__init__(self.validator)
 
 
 class DateTimeRangeValidator(ArgumentValidator[date]):
-    def validator(
-        self, value: Union[date, datetime, time], min: Optional[str] = None, max: Optional[str] = None, format: str = "?"
-    ) -> None:
+    def validator(self, value: Union[date, datetime, time], format: str = "?") -> None:
         min_date: Any
         max_date: Any
         # No need to check format here again. It is checked by DateTime types,
         # so format will always be valid here.
+        format = self.format if self.format != "?" else format
         if type(value) is date or isinstance(value, _DateType):
             format = "%Y-%m-%d" if format == "?" else format
-            min_date = datetime.strptime(min, format).date() if min else None
-            max_date = datetime.strptime(max, format).date() if max else None
+            min_date = datetime.strptime(self.min, format).date() if self.min else None
+            max_date = datetime.strptime(self.max, format).date() if self.max else None
         elif type(value) is datetime or isinstance(value, _DateTimeType):
             format = "%Y-%m-%dT%H:%M:%S" if format == "?" else format
-            min_date = datetime.strptime(min, format) if min else None
-            max_date = datetime.strptime(max, format) if max else None
+            min_date = datetime.strptime(self.min, format) if self.min else None
+            max_date = datetime.strptime(self.max, format) if self.max else None
         else:
             format = "%H:%M:%S" if format == "?" else format
-            min_date = datetime.strptime(min, format).time() if min else None
-            max_date = datetime.strptime(max, format).time() if max else None
+            min_date = datetime.strptime(self.min, format).time() if self.min else None
+            max_date = datetime.strptime(self.max, format).time() if self.max else None
 
         if min_date and max_date and (value < min_date or value > max_date):
             raise ValidationError(f"should be between {min_date} and {max_date}", validator=self)
@@ -94,7 +84,7 @@ class DateTimeRangeValidator(ArgumentValidator[date]):
         if max_date and value > max_date:
             raise ValidationError(f"should be before {max_date}", validator=self)
 
-    def __init__(self, min: Optional[str] = None, max: Optional[str] = None, format: Optional[str] = "?"):
+    def __init__(self, min: Optional[str] = None, max: Optional[str] = None, format: str = "?"):
         if format and format != "?":
             try:
                 # KeyError raised when a bad format is found; can be specified as
@@ -118,18 +108,13 @@ class DateTimeRangeValidator(ArgumentValidator[date]):
         if max is not None and not isinstance(max, str):
             raise ValidatorInitError("invalid format provided for max", validator=self)
 
-        super().__init__(self.validator, min=min, max=max, format=format)
+        self.min = min
+        self.max = max
+        self.format = format
 
 
 class PathValidator(ArgumentValidator[Union[Path, str]]):
-    def validator(
-        self,
-        value: Union[Path, str],
-        is_absolute: bool = False,
-        is_dir: bool = False,
-        is_file: bool = False,
-        exists: bool = False,
-    ) -> None:
+    def validator(self, value: Union[Path, str]) -> None:
         if not isinstance(value, (str, Path)):
             raise ValidationError(f"expected 'str' or 'Path' value. Found '{type(value).__name__}'")
         if isinstance(value, str):
@@ -137,16 +122,16 @@ class PathValidator(ArgumentValidator[Union[Path, str]]):
         # Perform no validation on stdin/stdout files
         if fsencode(value) == b"-":
             return
-        if is_absolute:
+        if self.is_absolute:
             if not value.is_absolute():
                 raise ValidationError(f"'{value}' is not an absolute path", validator=self)
-        if is_dir:
+        if self.is_dir:
             if not value.is_dir():
                 raise ValidationError(f"'{value}' is not a valid directory", validator=self)
-        if is_file:
+        if self.is_file:
             if not value.is_file():
                 raise ValidationError(f"'{value}' is not a valid file", validator=self)
-        if exists:
+        if self.exists:
             if not value.exists():
                 raise ValidationError(f"'{value}' does not exist", validator=self)
 
@@ -158,66 +143,67 @@ class PathValidator(ArgumentValidator[Union[Path, str]]):
         if true_count > 1:
             raise ValidatorInitError("only one of is_dir, is_file, exists can be True at most", validator=self)
 
-        super().__init__(self.validator, is_absolute=is_absolute, is_dir=is_dir, is_file=is_file, exists=exists)
+        self.is_absolute = is_absolute
+        self.is_dir = is_dir
+        self.is_file = is_file
+        self.exists = exists
 
 
 class UrlValidator(ArgumentValidator[str]):
-    def validator(
-        self,
-        value: str,
-        allowed_schemes: List[str] = [],
-        host_required: bool = False,
-        port_required: bool = False,
-    ) -> None:
+    def validator(self, value: str) -> None:
         if not isinstance(value, str):
             raise ValidationError(f"expected 'str' value, found '{type(value).__name__}'", validator=self)
         url_components = urlparse(value)
         rc = validate_url(
-            url_components, allowed_schemes=allowed_schemes, host_required=host_required, port_required=port_required
+            url_components,
+            allowed_schemes=self.allowed_schemes,
+            host_required=self.host_required,
+            port_required=self.port_required,
         )
         if rc != "":
             raise ValidationError(rc, validator=self)
 
     def __init__(self, allowed_schemes: List[str] = [], host_required: bool = False, port_required: bool = False) -> None:
-        super().__init__(
-            self.validator, allowed_schemes=allowed_schemes, host_required=host_required, port_required=port_required
-        )
+        self.allowed_schemes = allowed_schemes
+        self.host_required = host_required
+        self.port_required = port_required
 
 
 class RegexValidator(ArgumentValidator[str]):
-    def validator(self, value: str, pattern: str) -> None:
+    def validator(self, value: str) -> None:
         if not isinstance(value, str):
             raise ValidationError(f"expected 'str' value, found '{type(value).__name__}'", validator=self)
 
-        regex = re.compile(pattern)
+        regex = re.compile(self.pattern)
 
         if not regex.fullmatch(value):
-            raise ValidationError(f"'{value}' does not match expression '{pattern}'", validator=self)
+            raise ValidationError(f"'{value}' does not match expression '{self.pattern}'", validator=self)
 
     def __init__(self, pattern: str) -> None:
-        super().__init__(self.validator, pattern=pattern)
+        self.pattern = pattern
 
 
 class ConfirmationValidator(ArgumentValidator[Any]):
     def __init__(
         self,
         message: str = "Are you sure you want to proceed?",
-        abort_message: Optional[str] = "aborted!",
+        abort_message: str = "aborted!",
         answers: List[str] = ["y", "yes"],
         ignore_case: bool = True,
     ) -> None:
-        super().__init__(
-            self.validator, message=message, abort_message=abort_message, answers=answers, ignore_case=ignore_case
-        )
+        self.message = message
+        self.abort_message = abort_message
+        self.answers = answers
+        self.ignore_case = ignore_case
 
-    def validator(self, value: str, message: str, abort_message: str, answers: List[str], ignore_case: bool) -> None:
+    def validator(self, value: str) -> None:
         try:
-            answer = str(input(f"{message} [{'/'.join(answers)}]: ")).strip()
+            answer = str(input(f"{self.message} [{'/'.join(self.answers)}]: ")).strip()
         except KeyboardInterrupt:  # pragma: no cover
-            raise ValidationError(abort_message, validator=self)
-        if (ignore_case and answer.lower() in [ans.lower() for ans in answers]) or (
-            not ignore_case and answer in answers
+            raise ValidationError(self.abort_message, validator=self)
+        if (self.ignore_case and answer.lower() in [ans.lower() for ans in self.answers]) or (
+            not self.ignore_case and answer in self.answers
         ):
             pass
         else:
-            raise ValidationError(abort_message, validator=self)
+            raise ValidationError(self.abort_message, validator=self)

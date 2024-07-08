@@ -91,7 +91,7 @@ class ArgumentField:
         self._processed = False
 
     def is_list(self) -> bool:
-        return self._origin == list
+        return self._origin is list
 
     def is_tuple(self) -> bool:
         return isinstance(self._type, _TupleType)
@@ -318,7 +318,7 @@ class ArgumentField:
             self._action = ActionsEnum.APPEND
             return
 
-        if self._type == bool:
+        if self._type is bool:
             self._action = BooleanOptionalAction
             return
 
@@ -335,13 +335,13 @@ class ArgumentField:
             if self.const is None:
                 raise ArgumentError("field starting with _ should have 'const' property", field=self)
         if self.const is not None:
-            if self._type == bool:
+            if self._type is bool:
                 raise ArgumentError("'const' property is not allowed for 'bool' type", field=self)
 
             if self.is_positional():
                 raise ArgumentError("'const' property is not allowed for 'positional' arguments", field=self)
 
-            if self._type != type(self.const):
+            if self._type is not type(self.const):
                 # TODO: This is a temporary condition. Remove in future and add proper validations
                 if not self.is_list() and not self.is_dict() and not self.is_union() and not self.is_tuple():
                     raise ArgumentError("'const' must be of same type as field", field=self)
@@ -390,7 +390,7 @@ class ArgumentField:
                             f"'default' must be of same type as defined by 'type' property, '{type(self.default).__name__}' given",
                             field=self,
                         )
-            elif self._type and type(self.default) != self._type and not isinstance(self.default, Enum):
+            elif self._type and type(self.default) is not self._type and not isinstance(self.default, Enum):
                 raise ArgumentError(
                     f"'default' must be of same type as defined by 'type' property, '{type(self.default).__name__}' given",
                     field=self,
@@ -404,7 +404,7 @@ class ArgumentField:
             default = None
             if self.counter:
                 default = 0
-            if self._type == bool:
+            if self._type is bool:
                 default = False
             self.default = default
             return
@@ -479,7 +479,7 @@ class ArgumentField:
     def eval_counter(self) -> None:
         if self.counter is False:
             return
-        if self._type != int and self._type != float:
+        if self._type is not int and self._type is not float:
             raise ArgumentError("field type must be 'int' or 'float' for counter fields", field=self)
         if self.is_list() or self.is_dict() or self.is_tuple() or self.is_union():
             raise ArgumentError("field type must be 'int' or 'float' for counter fields", field=self)

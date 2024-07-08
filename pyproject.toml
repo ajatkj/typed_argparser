@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Typing :: Typed",
 ]
-description = "Simplify command line argument parsing with type hints"
+description = "Simplify command line argument parsing & validation with type hints"
 readme = "README.md"
 requires-python = ">=3.8"
 keywords = ["typed", "argparse", "argparser", "argparse-typed"]

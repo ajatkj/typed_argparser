@@ -67,8 +67,8 @@ class TestBasics(TestCase):
             verbose: Optional[int] = argfield("-v", counter=True)
             cho: Optional[Choices] = argfield(default=Choices.CHOICE2)
             lit: Optional[Literal["opt1", "opt2"]] = argfield()
-            num: Optional[List[Type]] = argfield(const=int)
-            _str: Optional[Type] = argfield(const=str, dest="num")
+            num: Optional[List[Type[int]]] = argfield(const=int)
+            _str: Optional[Type[str]] = argfield(const=str, dest="num")
 
         self.cli = CLI(config=config)
 
@@ -490,7 +490,7 @@ class TestGroupsAndCommands(TestCase):
         with redirect_stdout(stdout):
 
             @self.cli.remote.execute
-            def show_origin():
+            def show_origin() -> None:
                 print("origin")
 
         self.assertEqual(stdout.getvalue(), "origin\n")
@@ -498,11 +498,11 @@ class TestGroupsAndCommands(TestCase):
     def test_default_decorator_for_nested_command(self) -> None:
         usage = """\
         USAGE: cli remote add [--source <PATH>] [--destination <PATH>] [--help]
-        
+
         OPTIONS:
             --source <PATH>       Source file [Path]
             --destination <PATH>  Destination file [Path]
-        
+
         MISCELLANEOUS:
             --help                show this help message and exit
         """
@@ -511,7 +511,7 @@ class TestGroupsAndCommands(TestCase):
         with redirect_stdout(stdout):
 
             @self.cli.remote.add.execute
-            def show_add_help():
+            def show_add_help() -> None:
                 self.cli.remote.add.print_help()
 
         self.assertEqual(stdout.getvalue(), dedent(usage))
@@ -522,7 +522,7 @@ class TestGroupsAndCommands(TestCase):
         with redirect_stdout(stdout):
 
             @self.cli.remote.add.execute(open_files=False)
-            def show_origin(source, destination):
+            def show_origin(source: Path, destination: Path) -> None:
                 print(f"adding {source} to {destination}")
 
         self.assertEqual(stdout.getvalue(), "adding source_file to destination_path\n")
@@ -1223,7 +1223,7 @@ class TestPathExecuteDecorator(TestCase):
         stdout = StringIO()
 
         @self.cli.execute
-        def run(infile: TextIOWrapper, outfile: TextIO):
+        def run(infile: TextIOWrapper, outfile: TextIO) -> None:
             lines = infile.readlines()
             with redirect_stdout(stdout):
                 sys.stdout.writelines(lines)
@@ -1236,7 +1236,7 @@ class TestPathExecuteDecorator(TestCase):
         stdout = StringIO()
 
         @self.cli.execute(open_files=False)
-        def run_wo_open(infile: Path, outfile: Path):
+        def run_wo_open(infile: Path, outfile: Path) -> None:
             infile_handle = infile.open()
             line = infile_handle.readlines()
             with redirect_stdout(stdout):
@@ -1251,7 +1251,7 @@ class TestPathExecuteDecorator(TestCase):
         with self.assertRaises(SystemExit) as return_code, redirect_stderr(stdout):
 
             @self.cli.execute
-            def run(infile: Path, outfile: Path):
+            def run(infile: Path, outfile: Path) -> None:
                 pass
 
         self.assertEqual(return_code.exception.code, 2)
@@ -1263,7 +1263,7 @@ class TestPathExecuteDecorator(TestCase):
         with self.assertRaises(SystemExit) as return_code, redirect_stderr(stdout):
 
             @self.cli.execute
-            def run(infile: Path, outfile: Path):
+            def run(infile: Path, outfile: Path) -> None:
                 pass
 
         self.assertEqual(return_code.exception.code, 2)
@@ -1436,7 +1436,7 @@ class TestConfirmationValidator(TestCase):
         with redirect_stdout(stdout):
 
             @self.cli.execute("yes")
-            def drop_db(yes):
+            def drop_db(yes: bool) -> None:
                 print("Dropping db")
 
         self.assertEqual(stdout.getvalue(), "Dropping db\n")
@@ -1818,7 +1818,7 @@ class TestExecuteDecorator(TestCase):
         with self.assertRaisesRegex(RuntimeError, "arguments need to be parsed before running"):
 
             @cli.execute
-            def excute_opt1(opt1: str):
+            def excute_opt1(opt1: str) -> None:
                 print("opt1 executed")
 
     def test_execute_unknown_func_args(self) -> None:
@@ -1831,7 +1831,7 @@ class TestExecuteDecorator(TestCase):
         with self.assertRaisesRegex(TypeError, "unknown function argument 'opt2'"):
 
             @cli.execute
-            def excute_opt1(opt1: str, opt2: str):
+            def excute_opt1(opt1: str, opt2: str) -> None:
                 print("opt1 executed")
 
     def test_execute_no_run(self) -> None:
@@ -1842,7 +1842,7 @@ class TestExecuteDecorator(TestCase):
         cli.parse(" ")
 
         @cli.execute
-        def excute_opt1(opt1: str):
+        def excute_opt1(opt1: str) -> None:
             print("opt1 executed")
 
     def test_execute_default_func_args(self) -> None:
@@ -1856,7 +1856,7 @@ class TestExecuteDecorator(TestCase):
         with redirect_stdout(stdout):
 
             @cli.execute
-            def excute_opt1(opt1: str, opt2: str = "bar"):
+            def excute_opt1(opt1: str, opt2: str = "bar") -> None:
                 print(f"{opt1}={opt2}")
 
         self.assertEqual(stdout.getvalue(), "foo=None\n")
@@ -1875,7 +1875,7 @@ class TestExecuteDecorator(TestCase):
         with self.assertRaisesRegex(TypeError, "invalid function argument 'command1', subcommands are not allowed"):
 
             @cli.execute
-            def excute_opt1(command1):
+            def excute_opt1(command1: Command1) -> None:
                 print("opt1 executed")
 
     def test_execute_from_subcommand(self) -> None:
@@ -1891,7 +1891,7 @@ class TestExecuteDecorator(TestCase):
         with redirect_stdout(stdout):
 
             @cli.command1.execute
-            def excute_opt1(opt1: str):
+            def excute_opt1(opt1: str) -> None:
                 print("opt1 executed using subcommand")
 
         self.assertEqual(stdout.getvalue(), "opt1 executed using subcommand\n")
@@ -1912,19 +1912,19 @@ class TestExecuteDecorator(TestCase):
         with redirect_stdout(stdout):
 
             @cli.execute
-            def execute_default_for_script():
+            def execute_default_for_script() -> None:
                 print("default for script executed")
 
             @cli.cmd.execute
-            def execute_default_for_command():
+            def execute_default_for_command() -> None:
                 print("default for command executed")
 
             @cli.cmd.sub.execute
-            def execute_default_for_subcommand():
+            def execute_default_for_subcommand() -> None:
                 print("default for sub-command executed")
 
             @cli.cmd.sub.execute
-            def execute_opt_for_subcommand(opt1: str):
+            def execute_opt_for_subcommand(opt1: str) -> None:
                 print("opt1 for sub-command executed")
 
             self.assertEqual(stdout.getvalue(), "default for script executed\n")
@@ -1946,23 +1946,23 @@ class TestExecuteDecorator(TestCase):
         with redirect_stdout(stdout):
 
             @cli.execute
-            def execute_default_for_script():
+            def execute_default_for_script() -> None:
                 print("default for script executed")
 
             @cli.execute
-            def execute_opt_for_script(opt2: str):
+            def execute_opt_for_script(opt2: str) -> None:
                 print("opt for script executed")
 
             @cli.cmd.execute
-            def execute_default_for_command():
+            def execute_default_for_command() -> None:
                 print("default for command executed")
 
             @cli.cmd.sub.execute
-            def execute_default_for_subcommand():
+            def execute_default_for_subcommand() -> None:
                 print("default for sub-command executed")
 
             @cli.cmd.sub.execute
-            def execute_opt_for_subcommand(opt1: str):
+            def execute_opt_for_subcommand(opt1: str) -> None:
                 print("opt1 for sub-command executed")
 
             self.assertEqual(stdout.getvalue(), "opt for script executed\n")
@@ -1983,15 +1983,15 @@ class TestExecuteDecorator(TestCase):
         with redirect_stdout(stdout):
 
             @cli.cmd.execute
-            def execute_default_for_command():
+            def execute_default_for_command() -> None:
                 print("default for command executed")
 
             @cli.cmd.sub.execute
-            def execute_default_for_subcommand():
+            def execute_default_for_subcommand() -> None:
                 print("default for sub-command executed")
 
             @cli.cmd.sub.execute
-            def execute_opt_for_subcommand(opt1: str):
+            def execute_opt_for_subcommand(opt1: str) -> None:
                 print("opt1 for sub-command executed")
 
         self.assertEqual(stdout.getvalue(), "default for command executed\n")
@@ -2012,15 +2012,15 @@ class TestExecuteDecorator(TestCase):
         with redirect_stdout(stdout):
 
             @cli.cmd.execute
-            def execute_default_for_command():
+            def execute_default_for_command() -> None:
                 print("default for command executed")
 
             @cli.cmd.sub.execute
-            def execute_default_for_subcommand():
+            def execute_default_for_subcommand() -> None:
                 print("default for sub-command executed")
 
             @cli.cmd.sub.execute
-            def execute_opt_for_subcommand(opt1: str):
+            def execute_opt_for_subcommand(opt1: str) -> None:
                 print("opt1 for sub-command executed")
 
         self.assertEqual(stdout.getvalue(), "default for sub-command executed\n")
@@ -2041,15 +2041,15 @@ class TestExecuteDecorator(TestCase):
         with redirect_stdout(stdout):
 
             @cli.cmd.execute
-            def execute_default_for_command():
+            def execute_default_for_command() -> None:
                 print("default for command executed")
 
             @cli.cmd.sub.execute
-            def execute_default_for_subcommand():
+            def execute_default_for_subcommand() -> None:
                 print("default for sub-command executed")
 
             @cli.cmd.sub.execute
-            def execute_opt_for_subcommand(opt1: str):
+            def execute_opt_for_subcommand(opt1: str) -> None:
                 print("opt1 for sub-command executed")
 
         self.assertEqual(stdout.getvalue(), "opt1 for sub-command executed\n")
@@ -2211,8 +2211,8 @@ class TestDestFields(TestCase):
 
     def test_dest_fields_dest_of_types(self) -> None:
         class CLI(ArgumentClass):
-            opt1: Optional[Tuple[Type, ...]] = argfield(nargs=2, const=int)
-            _opt2: Optional[Type] = argfield(dest="opt1", const=str)
+            opt1: Optional[Tuple[Type[int], ...]] = argfield(nargs=2, const=int)
+            _opt2: Optional[Type[str]] = argfield(dest="opt1", const=str)
 
         cli = CLI()
         cli.parse("--opt1 --opt2")
@@ -2233,11 +2233,12 @@ class TestMisc(TestCase):
 
     def test_type(self) -> None:
         class CLI(ArgumentClass):
-            opt1: Type = argfield()
+            opt1: Optional[Type[str]] = argfield(const=float)
 
         cli = CLI()
 
-        cli.parse("int")
+        cli.parse("--opt1 abc")
+        print("----->", cli.opt1)
 
         self.assertIsInstance(cli.opt1, type)
 
@@ -2249,7 +2250,7 @@ def get_err_msg(stdout: StringIO, line_no: int = 1) -> str:
 # TODO: Tests
 # 1. All validations
 # 2. All configs
-def start_test():
+def start_test() -> None:
     main()
 
 
