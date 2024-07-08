@@ -26,9 +26,11 @@ dynamic = ["version"]
 Repository = "https://github.com/ajatkj/typed_argparser"
 
 [tool.setuptools.packages.find]
-exclude = ["typed_argparser.tests*", "typed_argparser.examples*"]
+exclude = ["tests.*", "examples.*", "tests", "examples", "htmlcov"]
 
 [tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "no-local-version"
 
 [tool.mypy]
 modules = "typed_argparser"
