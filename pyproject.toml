@@ -21,6 +21,8 @@ requires-python = ">=3.8"
 keywords = ["typed", "argparse", "argparser", "argparse-typed"]
 license = { text = "MIT" }
 dynamic = ["version"]
+dependencies = ["typing_extensions>=4.7.0,<5.0.0"]
+
 
 [project.urls]
 Repository = "https://github.com/ajatkj/typed_argparser"
@@ -30,6 +32,7 @@ exclude = ["tests.*", "examples.*", "tests", "examples", "htmlcov"]
 
 [tool.setuptools_scm]
 version_scheme = "post-release"
+local_scheme = "no-local-version"
 
 [tool.mypy]
 modules = "typed_argparser"
